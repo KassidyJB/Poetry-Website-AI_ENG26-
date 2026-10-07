@@ -1,0 +1,2 @@
+[functions.submit-poem]
+verify_jwt = false
