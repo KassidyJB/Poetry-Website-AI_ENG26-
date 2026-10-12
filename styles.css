@@ -1,13 +1,13 @@
 /* CSS: shared layout and visual styles for both pages */
 :root {
   color-scheme: light;
-  --ink: #18332e;
-  --muted: #61736d;
-  --paper: #fbfaf5;
+  --ink: #859358;
+  --muted: #2b3f39;
+  --paper: #fdfdfc;
   --line: #d6dfd7;
   --green: #24675b;
-  --green-dark: #174c43;
-  --coral: #c86149;
+  --green-dark: #6e8682;
+  --coral: #376a53;
   --serif: "Literata", Georgia, serif;
   --sans: "DM Sans", sans-serif;
 }
@@ -39,7 +39,7 @@ a { color: inherit; }
   align-items: center;
   justify-content: space-between;
   min-height: 82px;
-  border-bottom: 1px solid rgba(24, 51, 46, 0.18);
+  border-bottom: 1px solid rgba(37, 61, 169, 0.18);
 }
 
 .brand {
