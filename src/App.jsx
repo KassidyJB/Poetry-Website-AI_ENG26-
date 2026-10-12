@@ -5,9 +5,9 @@ import { supabase } from "./lib/supabase.js";
 function SiteHeader({ activePage }) {
   return (
     <header className="site-header">
-      <a className="brand" href="index.html" aria-label="Open Verse home">
+      <a className="brand" href="index.html" aria-label="Slam Poetry home">
         <span className="brand-mark" aria-hidden="true">v</span>
-        <span>OPEN VERSE</span>
+        <span>SLAM POETRY</span>
       </a>
       <nav aria-label="Main navigation">
         <a
@@ -15,7 +15,7 @@ function SiteHeader({ activePage }) {
           href="index.html"
           aria-current={activePage === "write" ? "page" : undefined}
         >
-          Write
+          Create
         </a>
         <a
           className={`nav-link${activePage === "poems" ? " active" : ""}`}
@@ -32,7 +32,7 @@ function SiteHeader({ activePage }) {
 function SiteFooter({ message }) {
   return (
     <footer className="site-footer">
-      <span>OPEN VERSE</span>
+      <span>SLAM POETRY</span>
       <span>{message}</span>
     </footer>
   );
@@ -43,7 +43,7 @@ function WriterPage() {
   const [title, setTitle] = useState("");
   const [poem, setPoem] = useState("");
   const [status, setStatus] = useState("");
-  const [isPublishing, setIsPublishing] = useState(false);
+  const [isPublishing, setIsPublishing] = useState(false); //M3--useState value: false
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -63,7 +63,7 @@ function WriterPage() {
     if (!supabase) {
       setStatus("Add the Supabase project settings to the local .env file before publishing.");
       return;
-    }
+    } //Adding the poems (user inputs) into SUPABASE database
 
     setIsPublishing(true);
     try {
@@ -85,8 +85,8 @@ function WriterPage() {
       <main className="write-layout">
         <section className="write-main" aria-labelledby="page-title">
           <p className="eyebrow">A little room to write</p>
-          <h1 id="page-title">Put your words<br />somewhere quiet.</h1>
-          <p className="intro-copy">Give your poem a name, add your own, and send it out into the open.</p>
+          <h1 id="page-title">A space for<br />creativity.</h1>
+          <p className="intro-copy">An extra avenue to express yourself pass a paper and pen.</p>
 
           <form className="poem-form" onSubmit={handleSubmit}>
             <div className="form-row">
@@ -126,7 +126,7 @@ function WriterPage() {
                 name="poem"
                 maxLength={5000}
                 rows={10}
-                placeholder="Begin wherever you are..."
+                placeholder="Begin writing..."
                 value={poem}
                 onChange={(event) => setPoem(event.target.value)}
                 required
@@ -147,9 +147,9 @@ function WriterPage() {
         </section>
 
         <aside className="write-note" aria-label="About publishing">
-          <span className="note-index">01 / OPEN VERSE</span>
+          <span className="note-index">01 / SLAM POETRY</span>
           <div className="note-rule" aria-hidden="true" />
-          <h2>No account.<br />No gatekeeping.</h2>
+          <h2>No account needed.<br />No gatekeeping.</h2>
           <p>Anyone can share a poem here. Once published, it will appear on the public poems page.</p>
           <a className="text-link" href="poems.html">Visit the poem shelf <span aria-hidden="true">&#8599;</span></a>
         </aside>
@@ -217,9 +217,9 @@ function PoemsPage() {
         <section className="shelf-intro" aria-labelledby="page-title">
           <div>
             <p className="eyebrow">The community collection</p>
-            <h1 id="page-title">A shelf for<br />the words we share.</h1>
+            <h1 id="page-title">A shelf of poems<br />from the Slam Poetry community.</h1>
           </div>
-          <p className="intro-copy">Poems from people passing through. Read a few, stay awhile, or leave something of your own.</p>
+          <p className="intro-copy">Poems from fellow poets. Read a few for awhile, or leave something of your own.</p>
         </section>
 
         <div className="shelf-toolbar">
