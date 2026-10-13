@@ -86,7 +86,7 @@ function WriterPage() {
         <section className="write-main" aria-labelledby="page-title">
           <p className="eyebrow">A little room to write</p>
           <h1 id="page-title">A space for<br />creativity.</h1>
-          <p className="intro-copy">An extra avenue to express yourself pass a paper and pen.</p>
+          <p className="intro-copy">An extra avenue to express yourself past a paper and pen.</p>
 
           <form className="poem-form" onSubmit={handleSubmit}>
             <div className="form-row">
