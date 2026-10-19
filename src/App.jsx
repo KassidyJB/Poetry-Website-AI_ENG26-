@@ -38,6 +38,27 @@ function SiteFooter({ message }) {
   );
 }
 
+async function getPublishErrorMessage(error) {
+  const context = error && typeof error === "object" && "context" in error
+    ? error.context
+    : null;
+
+  if (context instanceof Response) {
+    try {
+      const payload = await context.clone().json();
+      if (payload && typeof payload === "object" && typeof payload.error === "string") {
+        return payload.error;
+      }
+    } catch {
+      // Fall back to the SDK error when the function did not return JSON.
+    }
+  }
+
+  return error instanceof Error
+    ? error.message
+    : "The poem could not be published. Please try again.";
+}
+
 function WriterPage() {
   const [poet, setPoet] = useState("");
   const [title, setTitle] = useState("");
@@ -74,7 +95,7 @@ function WriterPage() {
       if (error) throw error;
       window.location.assign("poems.html?published=1");
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : "The poem could not be published. Please try again.");
+      setStatus(await getPublishErrorMessage(error));
       setIsPublishing(false);
     }
   }
