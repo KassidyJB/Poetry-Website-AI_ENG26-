@@ -1,4 +1,4 @@
-# Open Verse
+# Slam Poetry
 
 Poetry website for the C2C project and Capstone. Visitors can submit poems without an account and read the public collection.
 
@@ -41,7 +41,7 @@ This section tracks the implementation by area. Each item lists where the change
 - **Environment and generated files** — **Where:** `.env.example`, `.gitignore`. **What:** Added placeholders for the public Supabase URL/key and ignored local environment files, dependencies, and build output. **Why:** Makes setup repeatable without committing local secrets or generated files.
 
 
-### Supabase Backend
+### Supabase Backend (Coming soon during Week of 10/12-10/16)
 
 - **Database** — **Where:** `supabase/migrations/20261007000000_create_poems.sql`. **What:** Creates poems with unique IDs, length constraints, public read-only row security, and server-side insert permission. **Why:** Stores each submission independently and prevents anonymous clients from editing or deleting published poems.
 
