@@ -2,6 +2,19 @@
 import { useEffect, useState } from "react";
 import { supabase } from "./lib/supabase.js";
 
+async function getErrorMessage(error, fallback) {
+  if (error && typeof error === "object" && "context" in error && error.context instanceof Response) {
+    try {
+      const body = await error.context.clone().json();
+      if (typeof body.error === "string") return body.error;
+    } catch {
+      // Keep the original error when the response has no JSON error payload.
+    }
+  }
+
+  return error instanceof Error && error.message ? error.message : fallback;
+}
+
 function SiteHeader({ activePage }) {
   return (
     <header className="site-header">
@@ -74,7 +87,7 @@ function WriterPage() {
       if (error) throw error;
       window.location.assign("poems.html?published=1");
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : "The poem could not be published. Please try again.");
+      setStatus(await getErrorMessage(error, "The poem could not be published. Please try again."));
       setIsPublishing(false);
     }
   }
@@ -193,7 +206,7 @@ function PoemsPage() {
 
       if (ignoreResult) return;
       if (error) {
-        setStatus("The poems could not be loaded. Please try again later.");
+        setStatus(await getErrorMessage(error, "The poems could not be loaded. Please try again later."));
         return;
       }
 
@@ -201,8 +214,10 @@ function PoemsPage() {
       setStatus(data?.length ? `${data.length} recent ${data.length === 1 ? "poem" : "poems"}` : "");
     }
 
-    loadPoems().catch(() => {
-      if (!ignoreResult) setStatus("The poems could not be loaded. Please try again later.");
+    loadPoems().catch(async (error) => {
+      if (!ignoreResult) {
+        setStatus(await getErrorMessage(error, "The poems could not be loaded. Please try again later."));
+      }
     });
 
     return () => {
