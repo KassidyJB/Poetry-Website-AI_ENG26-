@@ -185,10 +185,26 @@ input::placeholder, textarea::placeholder { color: #87958e; }
 .button-primary:hover { background: var(--green-dark); transform: translateY(-1px); }
 .button-primary:disabled { cursor: wait; opacity: 0.7; transform: none; }
 
-.button-primary:focus-visible, .text-link:focus-visible, .nav-link:focus-visible {
+.button-primary:focus-visible, .button-secondary:focus-visible, .button-danger:focus-visible, .text-link:focus-visible, .nav-link:focus-visible, .admin-controls summary:focus-visible {
   outline: 3px solid var(--coral);
   outline-offset: 4px;
 }
+
+.button-secondary, .button-danger {
+  min-height: 40px;
+  padding: 0 13px;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  background: transparent;
+  font: 600 0.8rem var(--sans);
+  cursor: pointer;
+}
+
+.button-secondary { color: var(--green); }
+.button-danger { margin-top: 20px; color: #9c3d31; border-color: #d7aaa2; }
+.button-secondary:hover { background: rgba(36, 103, 91, 0.08); }
+.button-danger:hover { background: rgba(156, 61, 49, 0.08); }
+.button-secondary:disabled, .button-danger:disabled { cursor: wait; opacity: 0.65; }
 
 .form-status, .collection-status { color: var(--muted); font-size: 0.82rem; line-height: 1.5; }
 .form-status:empty { display: none; }
@@ -266,6 +282,14 @@ input::placeholder, textarea::placeholder { color: #87958e; }
 
 .shelf-toolbar .text-link { white-space: nowrap; }
 .collection-status { min-height: 24px; margin: 18px 0 0; }
+
+.admin-controls { padding: 14px 0; border-bottom: 1px solid var(--line); }
+.admin-controls summary { width: fit-content; cursor: pointer; }
+.admin-panel { display: flex; flex-wrap: wrap; align-items: end; gap: 12px; padding-top: 14px; }
+.admin-panel > p { flex-basis: 100%; margin: 0; color: var(--muted); font-size: 0.82rem; }
+.admin-login-form label { flex: 1 1 200px; margin: 0; font-size: 0.8rem; }
+.admin-login-form input { display: block; margin-top: 7px; }
+.admin-login-form .admin-status { flex-basis: 100%; }
 
 .poem-list {
   display: grid;

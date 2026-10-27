@@ -193,7 +193,7 @@ function WriterPage() {
   );
 }
 
-function PoemEntry({ item }) {
+function PoemEntry({ item, isAdmin, onDelete, deleting, deleteBusy }) {
   const date = new Intl.DateTimeFormat(undefined, { dateStyle: "medium" }).format(new Date(item.created_at));
 
   return (
@@ -201,14 +201,156 @@ function PoemEntry({ item }) {
       <h3>{item.title}</h3>
       <p className="poem-byline">By {item.poet} · {date}</p>
       <p className="poem-body">{item.poem}</p>
+      {isAdmin && (
+        <button
+          className="button-danger"
+          type="button"
+          onClick={onDelete}
+          disabled={deleteBusy}
+          aria-label={`Delete ${item.title} by ${item.poet}`}
+        >
+          {deleting ? "Deleting..." : "Delete poem"}
+        </button>
+      )}
     </article>
+  );
+}
+
+function AdminControls({ user, isAdmin, authReady, adminStatus, onSignIn, onSignOut, email, setEmail, password, setPassword, isBusy }) {
+  return (
+    <details className="admin-controls">
+      <summary className="text-link">{user && isAdmin ? "Admin controls" : "Admin sign in"}</summary>
+      {isAdmin ? (
+        <div className="admin-panel">
+          <p>Signed in as {user.email ?? "your account"}. Admin deletion is enabled.</p>
+          <button className="button-secondary" type="button" onClick={onSignOut} disabled={isBusy}>
+            Sign out
+          </button>
+        </div>
+      ) : user ? (
+        <div className="admin-panel">
+          <p>{adminStatus || "Checking whether this account can manage poems..."}</p>
+          <button className="button-secondary" type="button" onClick={onSignOut} disabled={isBusy}>
+            Sign out
+          </button>
+        </div>
+      ) : (
+        <form className="admin-panel admin-login-form" onSubmit={onSignIn}>
+          <p>Sign in with an allow-listed Supabase admin account to manage poems.</p>
+          <label>
+            Admin email
+            <input
+              type="email"
+              autoComplete="username"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              required
+            />
+          </label>
+          <label>
+            Password
+            <input
+              type="password"
+              autoComplete="current-password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              required
+            />
+          </label>
+          <button className="button-secondary" type="submit" disabled={!authReady || isBusy}>
+            {isBusy ? "Please wait..." : "Sign in"}
+          </button>
+          {adminStatus && <p className="admin-status" role="status">{adminStatus}</p>}
+        </form>
+      )}
+    </details>
   );
 }
 
 function PoemsPage() {
   const [poems, setPoems] = useState([]);
   const [status, setStatus] = useState("Loading poems...");
+  const [user, setUser] = useState(null);
+  const [authReady, setAuthReady] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [adminStatus, setAdminStatus] = useState("");
+  const [adminEmail, setAdminEmail] = useState("");
+  const [adminPassword, setAdminPassword] = useState("");
+  const [isAdminBusy, setIsAdminBusy] = useState(false);
+  const [deletingPoemId, setDeletingPoemId] = useState(null);
   const wasPublished = new URLSearchParams(window.location.search).has("published");
+
+  useEffect(() => {
+    if (!supabase) {
+      setAuthReady(true);
+      return;
+    }
+
+    let active = true;
+    supabase.auth.getSession().then(({ data, error }) => {
+      if (!active) return;
+      if (error) {
+        setAdminStatus("Could not check the admin session. Refresh and try again.");
+      }
+      setUser(data.session?.user ?? null);
+      setAuthReady(true);
+    }).catch(() => {
+      if (active) {
+        setAdminStatus("Could not check the admin session. Refresh and try again.");
+        setAuthReady(true);
+      }
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!active) return;
+      setUser(session?.user ?? null);
+      setAuthReady(true);
+      setAdminStatus("");
+    });
+
+    return () => {
+      active = false;
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+
+    async function checkAdminAccess() {
+      if (!authReady || !user || !supabase) {
+        setIsAdmin(false);
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from("poem_admins")
+        .select("user_id")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (!active) return;
+      if (error) {
+        setIsAdmin(false);
+        setAdminStatus(await getErrorMessage(error, "Could not verify admin access."));
+        return;
+      }
+
+      setIsAdmin(Boolean(data));
+      setAdminStatus(data ? "" : "This account is not authorized to manage poems.");
+    }
+
+    checkAdminAccess().catch(async (error) => {
+      if (active) {
+        setIsAdmin(false);
+        setAdminStatus(await getErrorMessage(error, "Could not verify admin access."));
+      }
+    });
+
+    return () => {
+      active = false;
+    };
+  }, [authReady, user]);
 
   useEffect(() => {
     let ignoreResult = false;
@@ -246,6 +388,73 @@ function PoemsPage() {
     };
   }, []);
 
+  async function handleAdminSignIn(event) {
+    event.preventDefault();
+    if (!supabase) return;
+
+    setIsAdminBusy(true);
+    setAdminStatus("");
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email: adminEmail.trim(),
+        password: adminPassword
+      });
+      if (error) throw error;
+      setAdminPassword("");
+    } catch (error) {
+      setAdminStatus(await getErrorMessage(error, "Admin sign-in failed."));
+    } finally {
+      setIsAdminBusy(false);
+    }
+  }
+
+  async function handleAdminSignOut() {
+    if (!supabase) return;
+
+    setIsAdminBusy(true);
+    setAdminStatus("");
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      setIsAdmin(false);
+      setAdminStatus("Signed out.");
+    } catch (error) {
+      setAdminStatus(await getErrorMessage(error, "Could not sign out."));
+    } finally {
+      setIsAdminBusy(false);
+    }
+  }
+
+  async function handleDeletePoem(item) {
+    if (!supabase || !isAdmin || deletingPoemId) return;
+    if (!window.confirm(`Permanently delete "${item.title}" by ${item.poet}?`)) return;
+
+    setDeletingPoemId(item.id);
+    setStatus("");
+    try {
+      const { data, error } = await supabase
+        .from("poems")
+        .delete()
+        .eq("id", item.id)
+        .select("id")
+        .maybeSingle();
+
+      if (error) throw error;
+      if (!data) throw new Error("The poem was not deleted. Confirm admin access and try again.");
+
+      const remainingPoems = poems.filter((poem) => poem.id !== item.id);
+      setPoems(remainingPoems);
+      setStatus(remainingPoems.length
+        ? `${remainingPoems.length} recent ${remainingPoems.length === 1 ? "poem" : "poems"}`
+        : "");
+      setAdminStatus(`Deleted "${item.title}".`);
+    } catch (error) {
+      setStatus(await getErrorMessage(error, "The poem could not be deleted. Please try again."));
+    } finally {
+      setDeletingPoemId(null);
+    }
+  }
+
   return (
     <div className="site-shell">
       <SiteHeader activePage="poems" />
@@ -263,12 +472,35 @@ function PoemsPage() {
           <a className="text-link" href="index.html">Write a poem <span aria-hidden="true">&#8594;</span></a>
         </div>
 
+        <AdminControls
+          user={user}
+          isAdmin={isAdmin}
+          authReady={authReady}
+          adminStatus={adminStatus}
+          onSignIn={handleAdminSignIn}
+          onSignOut={handleAdminSignOut}
+          email={adminEmail}
+          setEmail={setAdminEmail}
+          password={adminPassword}
+          setPassword={setAdminPassword}
+          isBusy={isAdminBusy}
+        />
+
         <p className="collection-status" role="status" aria-live="polite">
           {wasPublished && poems.length ? "Your poem is published. Thank you for sharing it." : status}
         </p>
         <section className="poem-list" aria-label="Published poems">
           {poems.length
-            ? poems.map((item) => <PoemEntry key={item.id} item={item} />)
+            ? poems.map((item) => (
+              <PoemEntry
+                key={item.id}
+                item={item}
+                isAdmin={isAdmin}
+                onDelete={() => handleDeletePoem(item)}
+                deleting={deletingPoemId === item.id}
+                deleteBusy={deletingPoemId !== null}
+              />
+            ))
             : status === "" && <p className="empty-state">The shelf is waiting for its first poem.</p>}
         </section>
 
