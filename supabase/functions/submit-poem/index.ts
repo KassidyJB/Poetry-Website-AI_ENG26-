@@ -49,9 +49,11 @@ Deno.serve(async (request: Request) => {
     return respond({ error: "Publishing is not configured yet." }, 500);
   }
 
-  const secretKey = secretKeys && typeof secretKeys === "object" && "default" in secretKeys
-    && typeof secretKeys.default === "string"
-    ? secretKeys.default
+  const keyName = "s_key_2";
+  const secretKey = secretKeys && typeof secretKeys === "object"
+    && keyName in secretKeys
+    && typeof (secretKeys as Record<string, unknown>)[keyName] === "string"
+    ? (secretKeys as Record<string, string>)[keyName]
     : "";
   if (!projectUrl || !secretKey) {
     console.error("Supabase URL or default secret key is not available to the function.");
