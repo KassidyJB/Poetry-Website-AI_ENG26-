@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@supabase/server": "^1.9.2",
-    "@supabase/supabase-js": "^2.57.0",
+    "@supabase/supabase-js": "^2.118.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },

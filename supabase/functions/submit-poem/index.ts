@@ -41,9 +41,20 @@ Deno.serve(async (request: Request) => {
   }
 
   const projectUrl = Deno.env.get("SUPABASE_URL");
-  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-  if (!projectUrl || !serviceRoleKey) {
-    console.error("Supabase function secrets are not configured.");
+  let secretKeys: unknown;
+  try {
+    secretKeys = JSON.parse(Deno.env.get("SUPABASE_SECRET_KEYS") ?? "");
+  } catch (error) {
+    console.error("Supabase secret keys are missing or invalid.", error);
+    return respond({ error: "Publishing is not configured yet." }, 500);
+  }
+
+  const secretKey = secretKeys && typeof secretKeys === "object" && "default" in secretKeys
+    && typeof secretKeys.default === "string"
+    ? secretKeys.default
+    : "";
+  if (!projectUrl || !secretKey) {
+    console.error("Supabase URL or default secret key is not available to the function.");
     return respond({ error: "Publishing is not configured yet." }, 500);
   }
 
@@ -51,8 +62,8 @@ Deno.serve(async (request: Request) => {
     const response = await fetch(`${projectUrl}/rest/v1/poems`, {
       method: "POST",
       headers: {
-        apikey: serviceRoleKey,
-        Authorization: `Bearer ${serviceRoleKey}`,
+        apikey: secretKey,
+        Authorization: `Bearer ${secretKey}`,
         "Content-Type": "application/json",
         Prefer: "return=minimal"
       },
