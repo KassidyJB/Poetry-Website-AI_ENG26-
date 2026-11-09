@@ -2,15 +2,7 @@
 
 Poetry website for the C2C project and Capstone. Visitors can submit poems without an account and read the public collection.
 
-## Start locally
-
-1. Install Node.js and run `npm install` from the repository root.
-2. Copy `.env.example` to `.env` and enter the Supabase project URL and public publishable key using the `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` variable names.
-3. Run `npm run dev` and open the Vite URL shown in the terminal.
-
-The writer page is `index.html`; the public collection is `poems.html`. See [SUPABASE_SETUP.md](SUPABASE_SETUP.md) for database setup and deployment instructions.
-
-## Supabase Changes and Setup Notes (October 2026)
+## Supabase Changes and Setup Notes (October 2026)--Starting project (abt 2 weeks)
 
 This section records the Supabase setup decisions and troubleshooting steps from the project integration.
 
@@ -29,7 +21,7 @@ This section records the Supabase setup decisions and troubleshooting steps from
 - If applying the read policy manually in the Supabase SQL Editor, a `DROP POLICY` statement may trigger a destructive-operation warning. It removes only the named policy before recreating it; it does not drop the table or delete poem rows. Review the SQL before confirming.
 - The browser shelf reads the newest 100 rows from `public.poems`. If the shelf appears empty after a successful submission, verify the row is in this same Supabase project, confirm the public read grant and policy, then inspect the `/rest/v1/poems` request in the browser Network panel for an error.
 
-### Admin user and poem deletion
+### Admin user and poem deletion (Late October) KEY
 
 There is no preconfigured admin account or admin password in the app. Admin access is granted to specific Supabase Auth user IDs through the `public.poem_admins` allow-list; adding an account there enables permanent poem deletion from the Read Poems page.
 
@@ -83,7 +75,6 @@ create policy "Poems are publicly readable"
   using (true);
 ```
 
-Only run the `CREATE POLICY` statement if that policy does not already exist. The migration also creates the table and configures its grants and policy; prefer `supabase db push` for a fresh setup.
 
 ### End-to-end verification and troubleshooting
 
@@ -101,7 +92,7 @@ Only run the `CREATE POLICY` statement if that policy does not already exist. Th
 4. If the frontend says Supabase settings are missing, confirm the two `VITE_` variables are spelled exactly as above, the `.env` file is beside `package.json`, and the Vite dev server was restarted.
 5. If the function logs report an insert failure, inspect the logged HTTP status and check the database table, schema, project URL, and function's selected secret-key name. Never paste key values into logs or support messages.
 
-## Change Log
+## Change Log --KEY
 
 This section tracks the implementation by area. Each item lists where the change lives, what changed, and why it was made.
 
@@ -151,7 +142,7 @@ This section tracks the implementation by area. Each item lists where the change
 - **Replaced files** — **Where:** `config.js`, `writer.js`, `poems.js` (removed). **What:** Removed the earlier standalone browser scripts after moving their responsibilities into React and Vite configuration. **Why:** Avoids maintaining both the vanilla-JavaScript implementation and the React app.
 
 
-## Publishing Behavior
+## Publishing Behavior --extra info regarding the poem
 
 Poems are published immediately and are publicly readable. Allow-listed Supabase Auth admins can permanently delete poems from the Read Poems page. The site has no editing, moderation, CAPTCHA, or rate limiting. Add abuse controls and a review/reporting process before opening it to unrestricted public submissions.
 supabase db push --project-ref augiaijonydeflbmlrtzsupabase db push --project-ref augiaijonydeflbmlrtz
